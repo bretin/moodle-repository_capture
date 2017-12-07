@@ -23,6 +23,13 @@ if(typeof jQuery != 'undefined')
         rra = new repository_capture();
         parent_block = $(frameElement).parent();
         
+
+        //----------------------------------------------------------------------
+        //Initialize the events on the buttons
+        $(document).on('click', '#rra-btn-audio', function() {rra.audio_init();});
+        $(document).on('click', '#rra-btn-video', function() {rra.video_init();});
+        $(document).on('click', '#rra-btn-photo', function() {rra.photo_init();});
+
         //----------------------------------------------------------------------
         //Get form info
         $('#setlicense').html($("#repo_upload_file_setlicense", parent_block).html());
@@ -222,11 +229,7 @@ if(typeof jQuery != 'undefined')
         });
         
         //----------------------------------------------------------------------
-        //Check if the flash object is loaded or not
-        if(rra.videorecorder == null)
-        {
-            rra.videorecorder_ready();
-        }
+        
         rra.slider_time.slider('disable');
         rra.slider_crop.slider('disable');
         rra.btn_record.button('enable');
@@ -259,61 +262,117 @@ function repository_capture()
     this.ipt_time = $('#ipt_time');
     this.audioonly = false;
     this.photoonly = false;
-    this.to_init = false;
+    this.videoonly = false;
+    this.to_init = true;
+
+    /**
+     * Called to initialize the flash object. It's called when a click on the btn-audio btn-video or btn-photo is clicked. Should be called only once
+     */
+    this.initFlashPlayer = function()
+    {
+        var objectHTML = '<object type="application/x-shockwave-flash" data="' + M.cfg.repository_capture_urlFlash + '" width="320" height="240" name="videorecorder" id="videorecorder" style="outline: none;">';
+        objectHTML = objectHTML + '<param name="allowScriptAccess" value="always">';
+        objectHTML = objectHTML + '<param name="allowFullScreen" value="true">';
+        objectHTML = objectHTML + '<param name="wmode" value="direct">';
+        objectHTML = objectHTML + '<param name="movie" value="' + M.cfg.repository_capture_urlFlash + '">';
+        objectHTML = objectHTML + '<param name="quality" value="high">';
+        objectHTML = objectHTML + '</object>';
+        $('#videorecorder').replaceWith(objectHTML);
+    }
+
+
+    /**
+     * Run this function when player is ready
+     * It is supposed to be called automatically by the Flash when it's ready
+     **/
+    this.videorecorder_ready = function()
+    {
+        if (this.videorecorder == undefined)
+        {
+            this.videorecorder = this.getFlashMovieObject('videorecorder');
+            this.videorecorder.initRecorder(this.audioonly, this.photoonly);
+            this.videorecorder_init();
+        }
+    }
+    
+    /**
+     * Call this function if a init is needed
+     **/
+    this.videorecorder_init = function(force)
+    {
+        if(typeof force === 'undefined')
+        {
+            force = false;
+        }
+        console.log(this.videorecorder, this.to_init, force);
+        if(typeof this.videorecorder != 'undefined' && (this.to_init || force == true))
+        {
+            this.to_init = false;
+
+            //The methode with force == false should only be called by the flashPlayer itself
+            if (force == true) {
+                this.setPlayerConfig();
+            }
+        }
+    }
+
+    this.show_recorder = function(type, videoWidth, videoHeight)
+    {
+        //Set the type of recording
+        this[type] = true;
+        
+        $('#record_toolbar').addClass(type);
+        
+        $("#repo_upload_" + type, parent_block).prop('checked', true);
+
+        //At the video init, hide the first choice menu
+        $('#div_capture #div_record_choice').hide();
+
+        //Display the video
+        $('#div_videorecorder')
+            .css('position', 'relative')
+            .css('top', 0)
+            .css('width', videoWidth);
+
+        this.initFlashPlayer();
+
+        $('#videorecorder')
+            .attr('width', videoWidth)
+            .attr('height', videoHeight);
+    }
     
     /**
      * Init the audio interface
      **/
     this.audio_init = function()
     {
-        this.audioonly = true;
-        
-        $('#record_toolbar').addClass('audioonly');
-        
-        //Set the height and width to the minimum to display the setting panel if needed
-        $('#video_width').val(220);
-        $('#video_height').val(140);
-        
-        this.video_init();
-        $("#repo_upload_audioonly", parent_block).prop('checked', true);
+        this.show_recorder('audioonly', 220, 140);
     }
     /**
      * Init the photo interface
      **/
     this.photo_init = function()
     {
-        this.photoonly = true;
-        
-        $('#record_toolbar').addClass('photoonly');
-        
-        //Set the height and width to the minimum to display the setting panel if needed
-        $('#video_width').val($('#photo_width').val());
-        $('#video_height').val($('#photo_height').val());
-        
-        this.video_init();
-        $("#repo_upload_photoonly", parent_block).prop('checked', true);
+        this.show_recorder('photoonly', $('#photo_width').val(), $('#photo_height').val());
     }
     /**
      * Init the video interface
      **/
     this.video_init = function()
     {
+        this.show_recorder('videoonly', $('#video_width').val(), $('#video_height').val());
+    }
+    /**
+     * Init the video interface
+     **/
+    this.setPlayerConfig = function()
+    {
         var fps = $('#video_fps').val();
         var quality = $('#video_quality').val();
         var width = $('#video_width').val();
         var height = $('#video_height').val();
-        
-        //At the video init, hide the first choice menu
-        $('#div_capture #div_record_choice').hide();
 
-        //Display the video
-        var block_video = $('#div_videorecorder');
-        block_video.css('position', 'relative');
-        block_video.css('top', 0);
-        block_video.css('width', width);
-        
         //Load the video recorder
-        this.videorecorder_ready();
         if (this.videorecorder != undefined)
         {
             this.to_init = true;
@@ -331,37 +390,6 @@ function repository_capture()
             this.videorecorder.setRecordSize(width, height, fps, quality);
             $(this.videorecorder).attr('width', w2);
             $(this.videorecorder).attr('height', h2);
-                
-            //Event on the ready video recorder or on the init of timeout
-            setTimeout('rra.videorecorder_init()', 500);
-        }
-    }
-    
-    /**
-     * Call this function if a init is needed
-     **/
-    this.videorecorder_init = function(force)
-    {
-        if(force == null)
-        {
-            force = false;
-        }
-        if(this.videorecorder != undefined && (this.to_init || force == true))
-        {
-            this.to_init = false;
-            this.videorecorder.initRecorder(this.audioonly, this.photoonly);
-        }
-    }
-    
-    /**
-     * Run this function when player is ready
-     **/
-    this.videorecorder_ready = function()
-    {
-        if (this.videorecorder == undefined)
-        {
-            this.videorecorder = this.getFlashMovieObject('videorecorder');
-            this.videorecorder_init();
         }
     }
     
@@ -388,8 +416,9 @@ function repository_capture()
         }
         if (navigator.appName.indexOf("Microsoft Internet")==-1)
         {
-            if (document.embeds && document.embeds[movieName])
+            if (document.embeds && document.embeds[movieName]) {
                 obj = document.embeds[movieName]; 
+            }
         }
         else // if (navigator.appName.indexOf("Microsoft Internet")!=-1)
         {

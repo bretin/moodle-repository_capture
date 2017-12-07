@@ -63,5 +63,11 @@ function xmldb_repository_capture_upgrade($oldversion)
         upgrade_plugin_savepoint(true, 2015100900, 'repository', 'capture');
     }
 
+    if ($oldversion < 2017120701)
+    {
+        //Add fix for flash on chrome/firefox
+        upgrade_plugin_savepoint(true, 2017120701, 'repository', 'capture');
+    }
+
     return true;
 }

@@ -45,7 +45,7 @@ if(isset($_REQUEST['bindata']))
 	<meta charset="utf-8">
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
-	<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css"  rel="stylesheet" type="text/css" media="screen"/>
+	<link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css"  rel="stylesheet" type="text/css" media="screen"/>
 	<script type="text/javascript">
 function getFlashMovieObject(movieName)
 {

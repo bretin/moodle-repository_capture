@@ -77,6 +77,7 @@ function display_page()
     //Params
     $repoUrl = $CFG->wwwroot . '/repository/capture/';
     $urlFlash = $repoUrl . 'flash/videorecorder.swf?prefixjs=rra.';
+    $PAGE->requires->js_init_code('M.cfg.repository_capture_urlFlash = \'' . $urlFlash . '\'');
 
     $html = '';
 
@@ -101,7 +102,7 @@ function display_page()
     {
         $html .= html_writer::start_tag('div', array('id' => 'block_mp3', 'class' => 'block_intro ui-corner-all', 'style' => 'display:none;'));
         $html .= html_writer::tag('h3', get_string('title_audio', 'repository_capture') . $OUTPUT->help_icon('title_audio', 'repository_capture'));
-        $html .= html_writer::tag('button', get_string('btn_audio', 'repository_capture'), array('onclick' => 'rra.audio_init();'));
+        $html .= html_writer::tag('button', get_string('btn_audio', 'repository_capture'), array('id' => 'rra-btn-audio'));
         $html .= html_writer::end_tag('div'); //End 
     }
     if ($record_video == 1 && has_capability("repository/capture:video", $context))
@@ -115,7 +116,7 @@ function display_page()
         $html .= get_string('video_height', 'repository_capture');
         $html .= html_writer::empty_tag('input', array('id' => 'video_height', 'name' => 'video_height', 'type' => 'text', 'value' => 240, 'style' => 'width:40px', 'maxlength' => 4, 'class' => 'ui-corner-all', 'autocomplete' => 'off'));
         $html .= html_writer::empty_tag('br');
-        $html .= html_writer::tag('button', get_string('btn_video', 'repository_capture'), array('onclick' => 'rra.video_init();'));
+        $html .= html_writer::tag('button', get_string('btn_video', 'repository_capture'), array('id' => 'rra-btn-video'));
         $html .= html_writer::end_tag('div'); //End 
     }
     if ($record_photo == 1 && has_capability("repository/capture:photo", $context))
@@ -127,7 +128,7 @@ function display_page()
         $html .= get_string('video_height', 'repository_capture');
         $html .= html_writer::empty_tag('input', array('id' => 'photo_height', 'name' => 'photo_height', 'type' => 'text', 'value' => 240, 'style' => 'width:40px', 'maxlength' => 4, 'class' => 'ui-corner-all', 'autocomplete' => 'off'));
         $html .= html_writer::empty_tag('br');
-        $html .= html_writer::tag('button', get_string('btn_photo', 'repository_capture'), array('onclick' => 'rra.photo_init();'));
+        $html .= html_writer::tag('button', get_string('btn_photo', 'repository_capture'), array('id' => 'rra-btn-photo'));
         $html .= html_writer::end_tag('div'); //End 
     }
     $html .= html_writer::end_tag('div'); //end div_record_choice
@@ -137,9 +138,9 @@ function display_page()
 
     $html .= html_writer::tag('div', get_string('err_no_hardware', 'repository_capture'), array('id' => 'record_no_harware', 'class' => 'ui-corner-all ui-state-error', 'style' => 'display:none;'));
 
-    $flash_attrs = array(
+    /*$flash_attrs = array(
         "type" => "application/x-shockwave-flash",
-        "data" => $urlFlash,
+        "data" => '',
         "width" => 320,
         "height" => 240,
         "name" => "videorecorder",
@@ -150,9 +151,11 @@ function display_page()
     $html .= html_writer::empty_tag('param', array("name" => "allowScriptAccess", "value" => "always"));
     $html .= html_writer::empty_tag('param', array("name" => "allowFullScreen", "value" => "true"));
     $html .= html_writer::empty_tag('param', array("name" => "wmode", "value" => "direct"));
-    $html .= html_writer::empty_tag('param', array("name" => "movie", "value" => $urlFlash));
+    $html .= html_writer::empty_tag('param', array("name" => "movie", "value" => ''));
     $html .= html_writer::empty_tag('param', array("name" => "quality", "value" => "high"));
-    $html .= html_writer::end_tag('object');
+    $html .= html_writer::end_tag('object');*/
+    $html .= html_writer::start_tag('div', ['id' => 'videorecorder']);
+    $html .= html_writer::end_tag('div');
 
     //Add the sliders control
     $html .= html_writer::start_tag('div', array('id' => 'record_toolbar', 'class' => 'ui-corner-all'));
